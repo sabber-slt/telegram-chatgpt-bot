@@ -1,0 +1,15 @@
+{
+  "name": "chatgpt",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@puregram/session": "^2.0.1-rc.1",
+    "dotenv": "^16.0.3",
+    "openai": "^3.2.1",
+    "telegraf": "^4.12.2"
+  }
+}

@@ -1,4 +1,4 @@
-# chatgpt-bot-telegram
+# telegram-chatgpt-bot
 
 How to Install: <BR>
 npm i <BR>

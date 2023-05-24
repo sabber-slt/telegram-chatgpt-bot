@@ -90,7 +90,26 @@ bot.on(message("text"), async (ctx) => {
   };
 
   dialog = slicedContext(dialog);
+  // if you want to use image api uncomment this
+  // try {
+  //   const response = await openai.createImage({
+  //     prompt: ctx.message.text,
+  //     n: 1,
+  //     size: "256x256",
+  //   });
+  //   await ctx.replyWithPhoto(Input.fromURL(response.data.data[0].url));
+  //   clearInterval(typing);
+  // } catch (error) {
+  //   clearInterval(typing);
 
+  //   const openAIError = error.response?.data?.error?.message;
+
+  //   if (openAIError) {
+  //     return await ctx.sendMessage(openAIError);
+  //   }
+  // }
+
+  // ChatGPT-3.5-turbo
   try {
     const response = await openai.createChatCompletion({
       model: "gpt-3.5-turbo",

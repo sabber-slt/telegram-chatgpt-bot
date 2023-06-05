@@ -1,15 +1,28 @@
-# telegram-chatgpt-bot
+## TELEGRAM CHATGPT BOT
 
-ChatGpt Telegram bot is powered by Nodejs and uses the Telegram Bot API to communicate with users.
+### How to install ?
 
-The chatbot would have a friendly user interface that would allow users to interact with it via text, voice, or image.
+- By using your own voice, you can communicate with this bot. Furthermore, the bot offers AI-powered image generation and the availability of ChatGPT text service.
+- In order to install, the operating system must have node.js installed.
+- In order to use it, you must first acquire an API key from the OpenAI website. [OpenAI API](https://openai.com/)
+- Second acquire telegram token from the BOTFATHER. [Telegram token](https://telegram.me/BotFather)
 
-You need to get 2 keys to work with this bot.
+- Clone This repo
+- Cd telegram-chatgpt-bot
+- To install all modules `npm install`
+- To run developer server `node index.js`
+- You can install pm2 globally before deploying. `npm i pm2 -g`
+- Then run `pm2 start index.js`
 
-1. [OpenAI API](https://openai.com/)
-2. [Telegram token](https://telegram.me/BotFather)
+## API KEYS
 
-How to Install: <BR>
-npm i <BR>
-nano .env (ADD TELEGRAM API AND OPENAI API) <BR>
-node index.js or you can use pm2 start index.js
+```sh
+// put your botfather key here
+const bot = new Telegraf("TELEGRAM_TOKEN");
+// put your openai api key here
+const configuration = new Configuration({
+    apiKey: "OPEN_AI_TOKEN",
+});
+
+// Using environmental variables is a better practice.
+```

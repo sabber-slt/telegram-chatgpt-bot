@@ -1,5 +1,17 @@
 ## TELEGRAM CHATGPT BOT
 
+A lightweight ChatGPT to Telegram bot that lets you interact with a large language model trained by OpenAI.
+
+# Features
+
+- **New ChatGPT API support.**
+- **Voice messages support!**
+- **AI-powered image generation**
+
+<p align="center">
+    <img src="./demo.gif" width="300"/>
+</p>
+
 ### How to install ?
 
 - By using your own voice, you can communicate with this bot. Furthermore, the bot offers AI-powered image generation and the availability of ChatGPT text service.

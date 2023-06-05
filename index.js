@@ -1,149 +1,91 @@
-const { Telegraf } = require("telegraf");
-const { SessionManager } = require("@puregram/session");
-const { message } = require("telegraf/filters");
-const { Configuration, OpenAIApi } = require("openai");
+import { Telegraf, session } from "telegraf";
+import { message } from "telegraf/filters";
+import { ogg } from "./src/ogg.js";
+import { openai } from "./src/openai.js";
+import { code } from "telegraf/format";
 
-const configuration = new Configuration({
-  apiKey: "Your OpenAI API Key",
-});
-const openai = new OpenAIApi(configuration);
-const bot = new Telegraf("Your Telegram Bot Token");
-const MAX_CONTEXT_TOKENS = 4096;
-const MAX_RESPONSE_TOKENS = 1000;
+const bot = new Telegraf("TELEGRAM_TOKEN");
+bot.use(session());
 
-const createDialogs = (ctx, next) => {
-  if (!ctx?.session?.dialogs) {
-    ctx.session.dialogs = new Map();
-  }
-
-  return next();
-};
-const checkAccess = (ctx, next) => {
-  if (ctx.session.isAllowed) {
-    return next();
-  }
-
-  const allowedUsers = "sabber_dev";
-  const isAllowed = allowedUsers.includes(ctx.message.from.username);
-  ctx.session.isAllowed = isAllowed;
-  return isAllowed ? next() : ctx.sendMessage("Access denied!");
+const INITIAL_SESSION = {
+  messages: [],
 };
 
-if (process.env.NODE_ENV === "dev") {
-  bot.use(Telegraf.log());
-}
+bot.launch();
 
-bot.use(new SessionManager().middleware);
-bot.use(createDialogs);
-bot.use(checkAccess);
-
-bot.start(async (ctx) => {
-  ctx.session.dialogs.set(ctx.chat.id, []);
-
-  await ctx.sendMessage("سلام خوش آمدید!");
-});
-
-bot.help(async (ctx) => {
-  await ctx.sendMessage("/reset - Reset dialog context");
-});
-
-bot.command("reset", async (ctx) => {
-  ctx.session.dialogs.set(ctx.chat.id, []);
-
-  await ctx.sendMessage("Chat has been reset!");
+bot.command("start", async (ctx) => {
+  ctx.session === INITIAL_SESSION;
+  await ctx.reply("سوال خود را بصورت متنی بپرسید یا از پیام استفاده کنید...");
 });
 
 bot.on(message("text"), async (ctx) => {
-  const chatId = ctx.chat.id;
-  const isTest = ctx.message.text.length < 5;
+  ctx.session ??= INITIAL_SESSION;
+  const { text } = ctx.message;
 
-  const typing = setInterval(async () => {
-    await ctx.sendChatAction("typing");
-  }, 1000);
-
-  if (!ctx.session.dialogs.has(chatId)) {
-    ctx.session.dialogs.set(chatId, []);
-  }
-
-  let dialog = ctx.session.dialogs.get(chatId);
-
-  if (!isTest) {
-    dialog.push({
-      role: "user",
-      content: ctx.message.text,
-    });
-  }
-
-  const slicedContext = (dialog) => {
-    const contextLength = dialog.reduce(
-      (acc, { content }) => acc + content.length,
-      0
-    );
-
-    if (contextLength <= MAX_CONTEXT_TOKENS - MAX_RESPONSE_TOKENS) {
-      return dialog;
+  if (text.match("تولید می کنند")) {
+    try {
+      await ctx.reply(code("تصویر در حال تولید است..."));
+      const image = await openai.imageGeneration(text, String(ctx.from.id));
+      await ctx.replyWithPhoto(image.path);
+    } catch (e) {
+      console.log("Error while image generating", e.message);
     }
+  } else {
+    try {
+      ctx.session.messages.push({
+        role: openai.roles.USER,
+        content: String(text),
+      });
 
-    dialog.shift();
+      const response = await openai.chat(ctx.session.messages);
+      const assistantMessageText = response.content;
 
-    return slicedContext(dialog);
-  };
+      ctx.session.messages.push({
+        role: openai.roles.ASSISTANT,
+        content: assistantMessageText,
+      });
 
-  dialog = slicedContext(dialog);
-  // if you want to use image api uncomment this
-  // try {
-  //   const response = await openai.createImage({
-  //     prompt: ctx.message.text,
-  //     n: 1,
-  //     size: "256x256",
-  //   });
-  //   await ctx.replyWithPhoto(Input.fromURL(response.data.data[0].url));
-  //   clearInterval(typing);
-  // } catch (error) {
-  //   clearInterval(typing);
-
-  //   const openAIError = error.response?.data?.error?.message;
-
-  //   if (openAIError) {
-  //     return await ctx.sendMessage(openAIError);
-  //   }
-  // }
-
-  // ChatGPT-3.5-turbo
-  try {
-    const response = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: dialog,
-      max_tokens: MAX_RESPONSE_TOKENS,
-    });
-    const { message } = response.data.choices[0];
-    const { content } = message;
-
-    dialog.push(message);
-
-    clearInterval(typing);
-    await ctx.replyWithMarkdown(content);
-
-    ctx.session.dialogs.delete(chatId);
-    ctx.session.dialogs.set(chatId, dialog);
-  } catch (error) {
-    clearInterval(typing);
-
-    const openAIError = error.response?.data?.error?.message;
-
-    if (openAIError) {
-      return await ctx.sendMessage(openAIError);
+      await ctx.reply(response.content);
+    } catch (e) {
+      console.log("Error while text message", e.message);
     }
-
-    await ctx.sendMessage(
-      error?.response?.statusText ?? error.response.description
-    );
   }
 });
 
-bot.catch((error) => console.error(error));
+bot.on(message("voice"), async (ctx) => {
+  console.log(ctx.session);
+  ctx.session ??= INITIAL_SESSION;
+  const { voice } = ctx.message;
+  try {
+    await ctx.reply(code("در انتظار پاسخ از طرف سرور..."));
+    const voiceLink = await ctx.telegram.getFileLink(voice.file_id);
+    const oggPath = await ogg.create(
+      voiceLink.href,
+      String(ctx.message.from.id)
+    );
+    const mp3Path = await ogg.toMp3(oggPath, ctx.message.from.id);
 
-bot.launch();
+    const userMessageText = await openai.transcription(mp3Path);
+    ctx.session.messages.push({
+      role: openai.roles.USER,
+      content: String(userMessageText),
+    });
+
+    // await ctx.reply(code(`درخواست شما: ${userMessageText}`));
+
+    const response = await openai.chat(ctx.session.messages);
+    const assistantMessageText = response.content;
+
+    ctx.session.messages.push({
+      role: openai.roles.ASSISTANT,
+      content: String(assistantMessageText),
+    });
+
+    await ctx.reply(assistantMessageText);
+  } catch (e) {
+    console.log("Error while voice message", e.message);
+  }
+});
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));

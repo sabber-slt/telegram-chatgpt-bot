@@ -1,9 +1,11 @@
 # telegram-chatgpt-bot
+
 ChatGpt Telegram Bot allows users to interact with a natural language processing (NLP) engine to ask questions and receive answers. The bot is powered by Nodejs and uses the Telegram Bot API to communicate with users.
 
-The bot is designed to be easy to use and understand, and it can answer questions about a variety of topics. It can also provide users with personalized recommendations based on their interests.
+The chatbot would have a friendly user interface that would allow users to interact with it via text, voice, or image inputs.
 
 You need to get 2 keys to work with this bot.
+
 1. [OpenAI API](https://openai.com/)
 2. [Telegram token](https://telegram.me/BotFather)
 

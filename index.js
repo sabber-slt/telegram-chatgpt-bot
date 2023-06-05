@@ -22,7 +22,7 @@ bot.on(message("text"), async (ctx) => {
   ctx.session ??= INITIAL_SESSION;
   const { text } = ctx.message;
 
-  if (text.match("تولید می کنند")) {
+  if (text.match("/image")) {
     try {
       await ctx.reply(code("تصویر در حال تولید است..."));
       const image = await openai.imageGeneration(text, String(ctx.from.id));

@@ -23,10 +23,8 @@ docker run --rm -it -p 5002:5002 --entrypoint /bin/bash ghcr.io/coqui-ai/tts-cpu
 python3 TTS/server/server.py --model_name tts_models/en/vctk/vits # To start a server
 ```
 
-- By using your own voice, you can communicate with this bot. Furthermore, the bot offers AI-powered image generation and the availability of ChatGPT text service.
 - In order to use it, you must first acquire an API key from the OpenAI website. [OpenAI API](https://openai.com/)
 - Second acquire telegram token from the BOTFATHER. [Telegram token](https://telegram.me/BotFather)
-
 - Clone This repo
 - Cd telegram-chatgpt-bot
 - Put your api keys in .env.local

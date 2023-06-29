@@ -1,10 +1,12 @@
 import { Telegraf, session } from "telegraf";
 import { message } from "telegraf/filters";
+import dotenv from "dotenv";
 import { ogg } from "./src/ogg.js";
 import { openai } from "./src/openai.js";
-import { code } from "telegraf/format";
 
-const bot = new Telegraf("TELEGRAM_TOKEN");
+dotenv.config();
+
+const bot = new Telegraf(`${process.env.TELEGRAM_API_KEY}`);
 bot.use(session());
 
 const INITIAL_SESSION = {
@@ -24,7 +26,7 @@ bot.on(message("text"), async (ctx) => {
 
   if (text.match("/image")) {
     try {
-      await ctx.reply(code("تصویر در حال تولید است..."));
+      await ctx.sendChatAction("upload_photo");
       const image = await openai.imageGeneration(text, String(ctx.from.id));
       await ctx.replyWithPhoto(image.path);
     } catch (e) {
@@ -32,6 +34,7 @@ bot.on(message("text"), async (ctx) => {
     }
   } else {
     try {
+      await ctx.sendChatAction("typing");
       ctx.session.messages.push({
         role: openai.roles.USER,
         content: String(text),
@@ -53,11 +56,10 @@ bot.on(message("text"), async (ctx) => {
 });
 
 bot.on(message("voice"), async (ctx) => {
-  console.log(ctx.session);
   ctx.session ??= INITIAL_SESSION;
   const { voice } = ctx.message;
+  await ctx.sendChatAction("record_voice");
   try {
-    await ctx.reply(code("در انتظار پاسخ از طرف سرور..."));
     const voiceLink = await ctx.telegram.getFileLink(voice.file_id);
     const oggPath = await ogg.create(
       voiceLink.href,
@@ -71,8 +73,6 @@ bot.on(message("voice"), async (ctx) => {
       content: String(userMessageText),
     });
 
-    // await ctx.reply(code(`درخواست شما: ${userMessageText}`));
-
     const response = await openai.chat(ctx.session.messages);
     const assistantMessageText = response.content;
 
@@ -80,8 +80,15 @@ bot.on(message("voice"), async (ctx) => {
       role: openai.roles.ASSISTANT,
       content: String(assistantMessageText),
     });
+    await ctx.sendChatAction("record_voice");
+    const voiceResponse = await fetch(
+      `${process.env.VOICE_API}/api/tts?text=${assistantMessageText}&speaker_id=p225&style_wav=&language_id=`
+    );
 
-    await ctx.reply(assistantMessageText);
+    const voiceResponseJson = await voiceResponse.arrayBuffer();
+    await ctx.sendChatAction("record_voice");
+    const voiceResponseBuffer = Buffer.from(voiceResponseJson);
+    await ctx.replyWithVoice({ source: Buffer.from(voiceResponseBuffer) });
   } catch (e) {
     console.log("Error while voice message", e.message);
   }

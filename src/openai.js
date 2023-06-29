@@ -1,8 +1,11 @@
 import { Configuration, OpenAIApi } from "openai";
 import { createReadStream, createWriteStream } from "fs";
 import axios from "axios";
+import dotenv from "dotenv";
 import { dirname, resolve } from "path";
 import { fileURLToPath } from "url";
+
+dotenv.config();
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 
@@ -15,12 +18,25 @@ class OpenAI {
 
   constructor() {
     const configuration = new Configuration({
-      apiKey: "OPEN_AI_TOKEN",
+      apiKey: process.env.OPENAI_API_KEY,
     });
     this.openAi = new OpenAIApi(configuration);
   }
 
   async chat(messages) {
+    try {
+      const response = await this.openAi.createChatCompletion({
+        model: "gpt-3.5-turbo",
+        messages,
+      });
+
+      return response.data.choices[0].message;
+    } catch (e) {
+      console.log("Error while chat", e.message);
+    }
+  }
+
+  async translate(messages) {
     try {
       const response = await this.openAi.createChatCompletion({
         model: "gpt-3.5-turbo",

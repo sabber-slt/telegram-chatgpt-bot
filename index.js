@@ -80,11 +80,13 @@ bot.on(message("voice"), async (ctx) => {
       role: openai.roles.ASSISTANT,
       content: String(assistantMessageText),
     });
-    await ctx.sendChatAction("record_voice");
-    const voiceResponse = await fetch(
-      `${process.env.VOICE_API}/api/tts?text=${assistantMessageText}&speaker_id=p225&style_wav=&language_id=`
-    );
 
+    await ctx.sendChatAction("record_voice");
+    // if you have installed docker, you can use this code for voice message
+    // it doesn't support persian language
+    const voiceResponse = await fetch(
+      `${process.env.VOICE_API}/api/tts?text=${assistantMessageText}&speaker_id=p225&style_wav=&language_id=` // you can change speaker_id to change voice
+    );
     const voiceResponseJson = await voiceResponse.arrayBuffer();
     await ctx.sendChatAction("record_voice");
     const voiceResponseBuffer = Buffer.from(voiceResponseJson);

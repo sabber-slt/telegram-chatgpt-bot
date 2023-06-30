@@ -3,6 +3,7 @@ import { message } from "telegraf/filters";
 import dotenv from "dotenv";
 import { ogg } from "./src/ogg.js";
 import { openai } from "./src/openai.js";
+import fetch from "node-fetch";
 
 dotenv.config();
 

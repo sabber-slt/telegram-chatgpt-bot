@@ -18,6 +18,7 @@
     "cross-env": "^7.0.3",
     "dotenv": "^16.3.1",
     "fluent-ffmpeg": "^2.1.2",
+    "node-fetch": "^3.3.1",
     "nodemon": "^2.0.22",
     "openai": "^3.2.1",
     "telegraf": "^4.12.2"

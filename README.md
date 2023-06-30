@@ -9,6 +9,7 @@ Telegram provides a suitable platform for using chatgpt due to its high security
 - **New ChatGPT API support.**
 - **2 way Voice messages support!**
 - **AI-powered image generation**
+- **Simply Run Docker compose up -d**
 
 <p align="center">
     <img src="./demo.gif" width="300"/>
@@ -29,6 +30,7 @@ python3 TTS/server/server.py --model_name tts_models/en/vctk/vits # To start a s
 - Cd telegram-chatgpt-bot
 - Put your api keys in .env.local
 - Change the name of .env.local to .env
+- If you have installed docker in your system just run docker-compose up -d and ignore rest
 - To install all modules `yarn`
 - To run developer server `yarn dev`
 - You can install pm2 globally before deploying. `yarn add pm2 -g`
